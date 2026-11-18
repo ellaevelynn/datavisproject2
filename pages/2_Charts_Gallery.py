@@ -8,7 +8,7 @@ st.set_page_config(page_title="Lung Cancer EDA Gallery", layout="wide")
 st.title("📊 Exploratory Data Analysis (EDA) Gallery")
 st.markdown(
     "Exploratory data analysis on the global lung cancer dataset, directly addressing "
-    "demographic makeup, regional diagnosis rates, and environmental risk factors[cite: 4]."
+    "demographic makeup, regional diagnosis rates, and environmental risk factors."
 )
 
 @st.cache_data
@@ -31,7 +31,7 @@ if df is None:
 # ==========================================
 # RESEARCH QUESTION 1 CHARTS
 # ==========================================
-st.header("Research Question 1: Demographic Makeup & Population Risk")
+st.header("Research Question 1: Understanding Demographic Makeup & Population Risk")
 
 # Chart 1A: Choropleth World Map & Summary Bar Chart
 st.subheader("1A. Choropleth World Map of Lung Cancer Diagnoses")
@@ -47,9 +47,9 @@ with col1:
 with col2:
     st.markdown("**How to read this chart:**")
     st.markdown(
-        "- **Map shading:** Coded by total diagnosis case counts per country[cite: 4].\n"
+        "- **Map shading:** Coded by total diagnosis case counts per country.\n"
         "- **Color intensity:** Darker red hues indicate higher recorded patient volumes.\n"
-        "- **Observations:** Cases span across 60 countries, with notable representation in major global regions."
+        "- **Observations:** Cases span across 60 countries, with a notable increase in patient cases in China, India, and the United States. There is limited patient data for many African and South American countries, which may reflect underreporting or data collection gaps."
     )
 
 st.divider()
@@ -66,9 +66,9 @@ with col1:
 with col2:
     st.markdown("**How to read this chart:**")
     st.markdown(
-        "- **X-axis:** Patient age in years[cite: 4].\n"
+        "- **X-axis:** Patient age in years.\n"
         "- **Facets:** Split into smoking history categories (Never Smoked, Former, Current).\n"
-        "- **Observations:** Never smokers represent a substantial share of patient records across adult age brackets."
+        "- **Observations:** Never smokers represent a substantial share of patient records across adult age brackets. This opens for additional questions on environmental and occupational risk factors beyond smoking history."
     )
 
 st.divider()
@@ -87,7 +87,7 @@ with col1:
 with col2:
     st.markdown("**How to read this chart:**")
     st.markdown(
-        "- **X-axis:** Age brackets.\n- **Stacked segments:** Cancer stage proportions (Stage I to IV)[cite: 4].\n"
+        "- **X-axis:** Age brackets.\n- **Stacked segments:** Cancer stage proportions (Stage I to IV).\n"
         "- **Observations:** Stage distributions remain consistent across age cohorts."
     )
 
@@ -96,7 +96,7 @@ st.divider()
 # ==========================================
 # RESEARCH QUESTION 2 CHARTS
 # ==========================================
-st.header("Research Question 2: Environmental Impact & Risk Factors")
+st.header("Research Question 2: Understanding Environmental Impact & Risk Factors")
 
 # Chart 2A: Co-occurrence Heatmap
 st.subheader("2A. Environmental Exposure & Smoking Status Co-occurrence Heatmap")
@@ -112,9 +112,9 @@ with col1:
 with col2:
     st.markdown("**How to read this chart:**")
     st.markdown(
-        "- **Matrix cells:** Overlapping counts of environmental air pollution levels and smoking status[cite: 4].\n"
+        "- **Matrix cells:** Overlapping counts of environmental air pollution levels and smoking status.\n"
         "- **Color intensity:** Darker blue indicates higher patient co-occurrence.\n"
-        "- **Observations:** High and moderate air pollution exposures affect both smokers and never-smokers alike."
+        "- **Observations:** High and moderate air pollution exposures affect both smokers and never-smokers alike. There is a noticible increase in impact on Moderate and High air pollution exposure levels for current smokers and non-smokers, which may compound risk factors for lung cancer development."
     )
 
 st.divider()
@@ -142,5 +142,5 @@ with col2:
     st.markdown(
         "- **X-axis:** Percentage of total patient cohort exposed[cite: 4].\n"
         "- **Y-axis:** Environmental hazard type.\n"
-        "- **Observations:** Air pollution and secondhand smoke present the highest environmental prevalence rates."
+        "- **Observations:** Air pollution and secondhand smoke present the highest environmental prevalence rates. Radon and Asbestos exposures are less common but still present in a notable share of patient records, highlighting the need for occupational and environmental health interventions, especially when a majority of patient records in this dataset identify as non-smokers."
     )

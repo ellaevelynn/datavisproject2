@@ -18,7 +18,7 @@ st.divider()
 st.subheader("Reflection: Paper Prototype to Final Build")
 st.markdown(
     "- **Prototype Evolution:** Transitioned from static multi-card sketches in Lab 4.3 to dynamic, responsive choropleth maps and co-occurrence heatmaps.\n"
-    "- **Interactivity Integration:** Added sidebar demographic sliders and exposure combination filters directly tied to the research questions[cite: 4].\n"
+    "- **Interactivity Integration:** Added sidebar demographic sliders and exposure combination filters directly tied to the research questions.\n"
     "- **Visual Hierarchy:** Streamlined multi-variable comparisons to evaluate environmental risk factors clearly."
 )
 

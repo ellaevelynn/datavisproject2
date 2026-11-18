@@ -2,6 +2,7 @@ import streamlit as st
 import base64
 import fitz  # PyMuPDF: pip install pymupdf
 from pathlib import Path
+from typing import Optional
 
 st.set_page_config(page_title="Isabella Eaton - Bio", layout="wide")
 

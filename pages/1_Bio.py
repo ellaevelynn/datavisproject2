@@ -70,6 +70,19 @@ with col2:
 
 st.divider()
 
+# ---------- Highlights & Visualization Philosophy ----------
+st.markdown("---")
+
+col_h, col_v = st.columns(2, gap="large")
+
+with col_h:
+    st.subheader("🌟 Highlights & Technical Skills")
+    st.text(HIGHLIGHTS)
+
+with col_v:
+    st.subheader("💡 Visualization Philosophy")
+    st.write(VISUALIZATION_PHILOSOPHY)
+
 # ---------- Unified PDF Modal Viewer ----------
 @st.dialog("Document Viewer", width="large")
 def show_pdf_modal(title: str, pdf_path: Optional[str]):

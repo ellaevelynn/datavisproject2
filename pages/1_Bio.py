@@ -21,7 +21,6 @@ INTRO = (
 PHOTO_PATH = "Headshot.jpeg"
 
 def find_asset(filename: str) -> Optional[str]:
-    """Searches for an asset file in the `assets/` folder and returns its path if found, otherwise returns None."""
     try:
         script_dir = Path(__file__).resolve().parent
     except NameError:
@@ -65,7 +64,7 @@ st.divider()
 
 # ---------- Unified PDF Modal Viewer ----------
 @st.dialog("Document Viewer", width="large")
-def show_pdf_modal(title: str, pdf_path: str | None):
+def show_pdf_modal(title: str, pdf_path: Optional[str]):
     st.subheader(title)
     if pdf_path and Path(pdf_path).exists():
         with open(pdf_path, "rb") as f:

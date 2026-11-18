@@ -14,7 +14,7 @@ st.write(
 
 st.info(
     "👉 **Use the sidebar navigation on the left** to explore my **Professional Bio**, "
-    "**EDA Gallery**, **Interactive Top-10 Hospital Dashboard**, and **Future Works & Ethics**."
+    "**Lung Cancer EDA Gallery**, **Interactive Patient Dashboard**, and **Future Works & Clinical Ethics**."
 )
 
 st.divider()
@@ -23,20 +23,20 @@ col1, col2, col3 = st.columns(3)
 with col1:
     with st.container(border=True):
         st.subheader("🧬 Professional Bio")
-        st.write("Learn about my background in biomedical informatics, data visualization, and research publications.")
+        st.write("Learn about my background in biomedical informatics, health equity, and research publications.")
         if st.button("Open Bio"):
             st.switch_page("pages/1_Bio.py")
 
 with col2:
     with st.container(border=True):
         st.subheader("📊 EDA Gallery")
-        st.write("Explore 4 distinct chart types, plain-language reading guides, and objective data observations.")
+        st.write("Explore exploratory data analyses and charts answering demographic and environmental research questions.")
         if st.button("Open EDA Gallery"):
             st.switch_page("pages/2_Charts_Gallery.py")
 
 with col3:
     with st.container(border=True):
-        st.subheader("🔍 Filtered Dashboard")
-        st.write("Analyze hospital patient volumes, billing distributions, and length of stay across top facilities.")
+        st.subheader("🔍 Patient Dashboard")
+        st.write("Analyze global lung cancer survival outcomes, tumor characteristics, and hazard exposure filters.")
         if st.button("Open Dashboard"):
             st.switch_page("pages/3_Dashboard.py")

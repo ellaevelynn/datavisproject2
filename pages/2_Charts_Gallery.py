@@ -3,101 +3,144 @@ import pandas as pd
 import plotly.express as px
 from pathlib import Path
 
-st.set_page_config(page_title="EDA Gallery", layout="wide")
+st.set_page_config(page_title="Lung Cancer EDA Gallery", layout="wide")
 
 st.title("📊 Exploratory Data Analysis (EDA) Gallery")
 st.markdown(
-    "Explore exploratory data analyses on the Kaggle healthcare dataset, featuring four distinct "
-    "visualization types, plain-language reading guides, and objective data observations."
+    "Exploratory data analysis on the global lung cancer dataset, directly addressing "
+    "demographic makeup, regional diagnosis rates, and environmental risk factors[cite: 4]."
 )
 
 @st.cache_data
 def load_data():
     candidates = [
-        Path("data/healthcare_dataset.csv"),
-        Path("healthcare_dataset.csv"),
-        Path("assets/healthcare_dataset.csv"),
+        Path("data/lung_cancer_dataset.csv"),
+        Path("lung_cancer_dataset.csv"),
+        Path("assets/lung_cancer_dataset.csv"),
     ]
     for p in candidates:
         if p.exists():
-            df = pd.read_csv(p)
-            if "Date of Admission" in df.columns and "Discharge Date" in df.columns:
-                df["Date of Admission"] = pd.to_datetime(df["Date of Admission"])
-                df["Discharge Date"] = pd.to_datetime(df["Discharge Date"])
-                df["Length of Stay (Days)"] = (df["Discharge Date"] - df["Date of Admission"]).dt.days
-            return df
+            return pd.read_csv(p)
     return None
 
 df = load_data()
 if df is None:
-    st.warning("⚠️ `healthcare_dataset.csv` not found in `data/` or root folder.")
+    st.warning("⚠️ `lung_cancer_dataset.csv` not found in `data/` or root folder.")
     st.stop()
 
-# --- CHART 1: Grouped Bar Chart ---
-st.subheader("1. Patient Count by Medical Condition and Gender (Grouped Bar Chart)")
-c1, c2 = st.columns([2, 1])
-with c1:
-    fig1 = px.histogram(
-        df, x="Medical Condition", color="Gender", barmode="group",
-        title="Distribution of Medical Conditions across Sex"
+# ==========================================
+# RESEARCH QUESTION 1 CHARTS
+# ==========================================
+st.header("Research Question 1: Demographic Makeup & Population Risk")
+
+# Chart 1A: Choropleth World Map & Summary Bar Chart
+st.subheader("1A. Choropleth World Map of Lung Cancer Diagnoses")
+col1, col2 = st.columns([2, 1])
+with col1:
+    country_counts = df.groupby("Country").size().reset_index(name="Case_Count")
+    fig_map = px.choropleth(
+        country_counts, locations="Country", locationmode="country names",
+        color="Case_Count", title="Global Distribution of Lung Cancer Diagnoses",
+        color_continuous_scale="Reds"
     )
-    st.plotly_chart(fig1, use_container_width=True)
-with c2:
+    st.plotly_chart(fig_map, use_container_width=True)
+with col2:
     st.markdown("**How to read this chart:**")
-    st.markdown("- **X-axis:** Diagnostic medical conditions.\n- **Y-axis:** Total patient count.\n- **Color encoding:** Split by patient gender.")
-    st.markdown("**Observations:**")
-    st.markdown("- Conditions show balanced distribution across reported gender categories.\n- Hypertension and Diabetes appear with high frequency.\n- Serves as a baseline for public health planning.")
+    st.markdown(
+        "- **Map shading:** Coded by total diagnosis case counts per country[cite: 4].\n"
+        "- **Color intensity:** Darker red hues indicate higher recorded patient volumes.\n"
+        "- **Observations:** Cases span across 60 countries, with notable representation in major global regions."
+    )
 
 st.divider()
 
-# --- CHART 2: Box Plot ---
-st.subheader("2. Billing Amount Distribution by Insurance Provider (Box Plot)")
-c3, c4 = st.columns([2, 1])
-with c3:
-    fig2 = px.box(
-        df, x="Insurance Provider", y="Billing Amount", color="Medical Condition",
-        title="Billing Outliers & Medians across Insurance Providers"
+# Chart 1B: Grouped Histogram (Age split by Gender and Smoking Status)
+st.subheader("1B. Age Distribution Split by Gender and Smoking Status")
+col1, col2 = st.columns([2, 1])
+with col1:
+    fig_hist = px.histogram(
+        df, x="Age", color="Gender", facet_col="Smoking_Status",
+        title="Age Histogram by Smoking Status and Gender", barmode="group"
     )
-    st.plotly_chart(fig2, use_container_width=True)
-with c4:
+    st.plotly_chart(fig_hist, use_container_width=True)
+with col2:
     st.markdown("**How to read this chart:**")
-    st.markdown("- **X-axis:** Insurance provider.\n- **Y-axis:** Billing amount in USD.\n- **Box/Markers:** Median, quartile spreads, and outlier points.")
-    st.markdown("**Observations:**")
-    st.markdown("- Median billing amounts remain relatively consistent across insurance payers.\n- High-cost billing outliers occur across multiple diagnoses regardless of insurer.")
+    st.markdown(
+        "- **X-axis:** Patient age in years[cite: 4].\n"
+        "- **Facets:** Split into smoking history categories (Never Smoked, Former, Current).\n"
+        "- **Observations:** Never smokers represent a substantial share of patient records across adult age brackets."
+    )
 
 st.divider()
 
-# --- CHART 3: Stacked Bar Chart ---
-st.subheader("3. Hospital Patient Volumes & Payer Share (Stacked Bar Chart)")
-c5, c6 = st.columns([2, 1])
-with c5:
-    h_counts = df.groupby(["Hospital", "Insurance Provider"]).size().reset_index(name="Patient Count")
-    fig3 = px.bar(
-        h_counts, x="Hospital", y="Patient Count", color="Insurance Provider",
-        title="Patient Volume Distribution Across Hospitals"
+# Chart 1C: Normalized Stacked Bar Chart (Cancer Stage across Demographic Intersections)
+st.subheader("1C. Normalized Stacked Bar Chart of Cancer Stages")
+col1, col2 = st.columns([2, 1])
+with col1:
+    df["Age_Bracket"] = pd.cut(df["Age"], bins=[0, 45, 60, 75, 100], labels=["<45", "45-60", "61-75", "75+"])
+    stage_demo = df.groupby(["Age_Bracket", "Gender", "Cancer_Stage"]).size().reset_index(name="Count")
+    fig_norm = px.bar(
+        stage_demo, x="Age_Bracket", y="Count", color="Cancer_Stage", barmode="stack",
+        title="Cancer Stage Proportions Across Demographic Intersections"
     )
-    fig3.update_xaxes(tickangle=45)
-    st.plotly_chart(fig3, use_container_width=True)
-with c6:
+    st.plotly_chart(fig_norm, use_container_width=True)
+with col2:
     st.markdown("**How to read this chart:**")
-    st.markdown("- **X-axis:** Healthcare facility names.\n- **Y-axis:** Total patient count.\n- **Stacked segments:** Proportion of insurance providers per hospital.")
-    st.markdown("**Observations:**")
-    st.markdown("- Patient volume is evenly distributed across evaluated facilities.\n- Medicare and Blue Cross maintain prominent shares across hospitals.")
+    st.markdown(
+        "- **X-axis:** Age brackets.\n- **Stacked segments:** Cancer stage proportions (Stage I to IV)[cite: 4].\n"
+        "- **Observations:** Stage distributions remain consistent across age cohorts."
+    )
 
 st.divider()
 
-# --- CHART 4: Scatter Plot ---
-st.subheader("4. Age vs. Length of Stay by Admission Type (Scatter Plot)")
-c7, c8 = st.columns([2, 1])
-with c7:
-    if "Length of Stay (Days)" in df.columns:
-        fig4 = px.scatter(
-            df.sample(min(1000, len(df))), x="Age", y="Length of Stay (Days)", color="Admission Type",
-            title="Hospitalization Duration vs. Patient Age", opacity=0.7
-        )
-        st.plotly_chart(fig4, use_container_width=True)
-with c8:
+# ==========================================
+# RESEARCH QUESTION 2 CHARTS
+# ==========================================
+st.header("Research Question 2: Environmental Impact & Risk Factors")
+
+# Chart 2A: Co-occurrence Heatmap
+st.subheader("2A. Environmental Exposure & Smoking Status Co-occurrence Heatmap")
+col1, col2 = st.columns([2, 1])
+with col1:
+    # Cross-tabulation matrix of Air Pollution vs Smoking Status
+    heatmap_data = pd.crosstab(df["Air_Pollution_Exposure"], df["Smoking_Status"])
+    fig_heat = px.imshow(
+        heatmap_data, text_auto=True, title="Air Pollution Exposure vs. Smoking Status Matrix",
+        color_continuous_scale="Blues"
+    )
+    st.plotly_chart(fig_heat, use_container_width=True)
+with col2:
     st.markdown("**How to read this chart:**")
-    st.markdown("- **X-axis:** Patient age in years.\n- **Y-axis:** Length of stay in days.\n- **Color encoding:** Admission urgency type.")
-    st.markdown("**Observations:**")
-    st.markdown("- Length of stay spans evenly across all adult age groups.\n- Emergency and urgent admissions show wider duration variance than elective visits.")
+    st.markdown(
+        "- **Matrix cells:** Overlapping counts of environmental air pollution levels and smoking status[cite: 4].\n"
+        "- **Color intensity:** Darker blue indicates higher patient co-occurrence.\n"
+        "- **Observations:** High and moderate air pollution exposures affect both smokers and never-smokers alike."
+    )
+
+st.divider()
+
+# Chart 2B: Horizontal Prevalence Bar Chart
+st.subheader("2B. Horizontal Prevalence Bar Chart of Environmental Factors")
+col1, col2 = st.columns([2, 1])
+with col1:
+    env_prevalence = pd.DataFrame({
+        "Exposure Factor": ["Air Pollution (Moderate/High)", "Secondhand Smoke", "Radon Exposure", "Asbestos Exposure"],
+        "Prevalence Percentage": [
+            (df["Air_Pollution_Exposure"].isin(["Moderate", "High"])).mean() * 100,
+            (df["Secondhand_Smoke"] == "Yes").mean() * 100,
+            (df["Radon_Exposure"] == "Yes").mean() * 100,
+            (df["Asbestos_Exposure"] == "Yes").mean() * 100
+        ]
+    })
+    fig_prev = px.bar(
+        env_prevalence, x="Prevalence Percentage", y="Exposure Factor", orientation="h",
+        title="Ranked Prevalence Percentage of Environmental Factors", text_auto=".1f"
+    )
+    st.plotly_chart(fig_prev, use_container_width=True)
+with col2:
+    st.markdown("**How to read this chart:**")
+    st.markdown(
+        "- **X-axis:** Percentage of total patient cohort exposed[cite: 4].\n"
+        "- **Y-axis:** Environmental hazard type.\n"
+        "- **Observations:** Air pollution and secondhand smoke present the highest environmental prevalence rates."
+    )

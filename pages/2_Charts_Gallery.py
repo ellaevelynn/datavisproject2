@@ -127,29 +127,41 @@ st.divider()
 st.header("2. How do environmental factors impact the development of lung cancer? Is there one environmental factor that is disproportionately present in patients diagnosed with lung cancer?")
 st.markdown("*Justification: While tobacco is the primary driver of lung cancer, environmental exposures are critical drivers, especially in the never-smokers cohort. Identifying which exposures occur most frequently with specific cancer types or genetic mutations informs targeted public health interventions.*")
 
-st.subheader("Visualization 4 & 5 (Horizontal Bar & 100% Stacked Bar): Environmental Exposure Prevalence & Subtype Breakdown")
-st.markdown("**Explored Question:** Which environmental exposures appear most frequently among diagnosed patients, and how do histological subtypes vary across air pollution exposure levels?")
-
 cohort_toggle = st.radio(
     "Cohort Filter (Interactive):",
     options=["All Patients", "Never Smokers Only", "Current / Former Smokers"],
     horizontal=True,
     key="rq2_cohort_toggle"
 )
-rq2_df = df.copy()
+
+# Normalize smoking status string to avoid case/spacing mismatches
+df_clean = df.copy()
+if "Smoking_Status" in df_clean.columns:
+    df_clean["Smoking_Status_Clean"] = df_clean["Smoking_Status"].astype(str).str.strip().str.title()
+else:
+    df_clean["Smoking_Status_Clean"] = "Unknown"
+
+rq2_df = df_clean.copy()
 if cohort_toggle == "Never Smokers Only":
-    rq2_df = rq2_df[rq2_df["Smoking_Status"] == "Never Smoker"]
+    rq2_df = rq2_df[rq2_df["Smoking_Status_Clean"].isin(["Never Smoker", "Never Smokers", "Non-Smoker"])]
 elif cohort_toggle == "Current / Former Smokers":
-    rq2_df = rq2_df[rq2_df["Smoking_Status"] != "Never Smoker"]
+    rq2_df = rq2_df[~rq2_df["Smoking_Status_Clean"].isin(["Never Smoker", "Never Smokers", "Non-Smoker"])]
+
+st.subheader("Visualization 4 & 5 (Horizontal Bar & 100% Stacked Bar): Environmental Exposure Prevalence & Subtype Breakdown")
+st.markdown("**Explored Question:** Which environmental exposures appear most frequently among diagnosed patients, and how do histological subtypes vary across air pollution exposure levels?")
+
+if rq2_df.empty:
+    st.warning(f"No records found for cohort: {cohort_toggle}. Displaying full dataset fallback.")
+    rq2_df = df_clean.copy()
 
 col3, col4 = st.columns(2)
 with col3:
     env_candidates = [
-        ("Moderate/High Air Pollution", rq2_df["Air_Pollution_Exposure"].isin(["Moderate", "High"]).mean() * 100 if "Air_Pollution_Exposure" in rq2_df else 0),
-        ("Secondhand Smoke", (rq2_df["Secondhand_Smoke"] == "Yes").mean() * 100 if "Secondhand_Smoke" in rq2_df else 0),
-        ("Occupational Hazard", (rq2_df["Occupational_Hazard"] == "Yes").mean() * 100 if "Occupational_Hazard" in rq2_df else 0),
-        ("Radon Exposure", (rq2_df["Radon_Exposure"] == "Yes").mean() * 100 if "Radon_Exposure" in rq2_df else 0),
-        ("Asbestos Exposure", (rq2_df["Asbestos_Exposure"] == "Yes").mean() * 100 if "Asbestos_Exposure" in rq2_df else 0),
+        ("Moderate/High Air Pollution", rq2_df["Air_Pollution_Exposure"].isin(["Moderate", "High", "moderate", "high"]).mean() * 100 if "Air_Pollution_Exposure" in rq2_df else 0),
+        ("Secondhand Smoke", (rq2_df["Secondhand_Smoke"].astype(str).str.strip().str.title() == "Yes").mean() * 100 if "Secondhand_Smoke" in rq2_df else 0),
+        ("Occupational Hazard", (rq2_df["Occupational_Hazard"].astype(str).str.strip().str.title() == "Yes").mean() * 100 if "Occupational_Hazard" in rq2_df else 0),
+        ("Radon Exposure", (rq2_df["Radon_Exposure"].astype(str).str.strip().str.title() == "Yes").mean() * 100 if "Radon_Exposure" in rq2_df else 0),
+        ("Asbestos Exposure", (rq2_df["Asbestos_Exposure"].astype(str).str.strip().str.title() == "Yes").mean() * 100 if "Asbestos_Exposure" in rq2_df else 0),
     ]
     prev_df = pd.DataFrame(env_candidates, columns=["Environmental Factor", "Prevalence (%)"]).sort_values("Prevalence (%)", ascending=True)
     fig_prev = px.bar(
@@ -166,10 +178,10 @@ with col3:
 with col4:
     if "Air_Pollution_Exposure" in rq2_df.columns and "Cancer_Type" in rq2_df.columns:
         air_ct = rq2_df.groupby(["Air_Pollution_Exposure", "Cancer_Type"]).size().reset_index(name="Count")
-        air_ct["Share (%)"] = air_ct.groupby("Air_Pollution_Exposure")["Count"].transform(lambda x: (x / x.sum()) * 100)
+        air_ct["Share (%)"] = air_ct.groupby("Air_Pollution_Exposure")["Count"].transform(lambda x: (x / x.sum()) * 100) if not air_ct.empty else 0
         fig_air_stack = px.bar(
             air_ct, x="Air_Pollution_Exposure", y="Share (%)", color="Cancer_Type",
-            barmode="stack", text=air_ct["Share (%)"].round(1).astype(str) + "%",
+            barmode="stack", text=air_ct["Share (%)"].round(1).astype(str) + "%" if not air_ct.empty else None,
             title=f"Histological Subtype Share (%) Across Air Pollution Levels ({cohort_toggle})",
             labels={"Air_Pollution_Exposure": "Air Pollution Exposure Level", "Share (%)": "Share of Exposure Group (%)", "Cancer_Type": "Cancer Type"},
             color_discrete_sequence=OKABE_ITO
@@ -177,21 +189,6 @@ with col4:
         fig_air_stack.update_layout(yaxis=dict(range=[0, 100]))
         st.plotly_chart(fig_air_stack, use_container_width=True)
         st.caption("Alt-text: 100% stacked bar chart comparing the proportion of lung cancer histological types across low, moderate, and high air pollution exposure levels.")
-
-st.markdown("**How to read this chart:**")
-st.markdown(
-    "- **Prevalence Axis (Left):** The horizontal axis runs from 0% to 100% and displays the proportion of filtered patients exposed to each environmental hazard.\n"
-    "- **Normalized Composition (Right):** Each vertical bar sums to 100%, showing the relative share of cancer subtypes within each air pollution tier.\n"
-    "- **Cohort Radio Toggle:** Dynamically isolates never-smokers vs. smokers to compare exposure burdens across smoking histories."
-)
-st.markdown("**Observations:**")
-st.markdown(
-    "- Moderate-to-high air pollution affects 76.4% of patients, making it the single most prevalent environmental factor in the dataset.\n"
-    "- Secondhand smoke is the second most common exposure (47.5%), followed by occupational hazards, radon, and asbestos.\n"
-    "- High environmental exposure rates persist at nearly identical levels when isolating the 'Never Smokers Only' cohort."
-)
-
-st.divider()
 
 # ==============================================================================
 # RESEARCH QUESTION 3 (SANKEY DIAGRAM + TUMOR DIAGNOSTICS)
@@ -260,6 +257,12 @@ if not rq3_df.empty:
     )
     st.plotly_chart(fig_sankey, use_container_width=True)
     st.caption("Alt-text: Sankey flow diagram illustrating patient counts moving from initial diagnosis methods on the left, through histological cancer types in the middle, to cancer stages on the right.")
+    st.markdown("**How to read this chart:**")
+    st.markdown(
+        "- **Node Columns (Left to Right):** Represents three sequential clinical dimensions: initial diagnostic detection method, histological cancer type, and eventual cancer stage at diagnosis.\n"
+        "- **Vertical Node Height & Ribbon Width:** Proportional to the number of patients flowing through each specific pathway combination; thicker ribbons indicate major clinical trajectories.\n"
+        "- **Color Coding:** Distinct Okabe-Ito and soft rgba ribbon tones trace patient movement across categorical boundaries."
+    )
 else:
     st.warning("Select at least one histological subtype to display the Sankey flow diagram.")
 
@@ -306,7 +309,6 @@ st.markdown(
 )
 
 st.divider()
-
 # ==============================================================================
 # RESEARCH QUESTION 4
 # ==============================================================================

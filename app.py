@@ -1,29 +1,34 @@
+import streamlit as st
+
 st.set_page_config(
-    page_title="My Streamlit Site",
+    page_title="Isabella Eaton • Portfolio",
     page_icon="📊",
     layout="wide"
 )
 
-st.title(" Welcome to My Streamlit Site")
-st.markdown(
-    """
-    This is a multi-page Streamlit app:
-    - **Bio**: who I am
-    - **Visualization**: a tiny interactive chart
-
-    Use the left sidebar to switch pages.
-    """
+st.title("Welcome to My Portfolio & Project Hub 👋")
+st.write(
+    "Hi! I'm **Isabella Eaton**, an undergraduate research assistant at the CU Anschutz Claw Lab "
+    "and a Data Science & Machine Learning major at MSU Denver."
 )
 
-with st.expander("How this app is organized (for students)"):
-    st.write(
-        """
-        - `app.py` is the entry point.
-        - Pages live in the `/pages` folder and auto-appear in the sidebar.
-        - Assets (images, PDFs, etc.) live in the `/assets` folder.
-        """
-    )
+st.info(
+    "👉 **Use the sidebar navigation on the left** to explore my **Bio & Research Publications** "
+    "as well as upcoming interactive data science project dashboards!"
+)
 
-st.caption("Built with Streamlit • Class template")
-st.page_link("pages/1_Bio.py", label="See my bio!", icon="☕")
+st.divider()
 
+col1, col2 = st.columns(2)
+with col1:
+    with st.container(border=True):
+        st.subheader("🧬 Research & Bio")
+        st.write("Learn more about my background in biomedical informatics, health equity, and genomic research.")
+        if st.button("Go to Bio Page"):
+            st.switch_page("pages/1_Bio.py")
+
+with col2:
+    with st.container(border=True):
+        st.subheader("💻 Data Science Projects")
+        st.write("Explore interactive dashboards, machine learning models, and data visualizations.")
+        st.caption("Coming soon / Check back for updates!")

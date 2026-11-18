@@ -15,7 +15,7 @@ st.markdown(
 @st.cache_data
 def load_data():
     candidates = [
-        Path("healthcare_dataset.csv"),
+        Path("data/healthcare_dataset.csv"),
         Path("assets/healthcare_dataset.csv"),
         Path("../healthcare_dataset.csv"),
         Path("../assets/healthcare_dataset.csv")

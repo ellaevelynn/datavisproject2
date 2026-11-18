@@ -105,7 +105,7 @@ fig_mut = px.bar(mut_df, x="Genetic_Mutation", y="Patient Count", color="Cancer_
 fig_mut.update_xaxes(tickangle=30)
 st.plotly_chart(fig_mut, use_container_width=True)
 
-st.markdown("**How to read this chart:** Bars represent patient counts per genetic mutation, stacked by cancer type (NSCLC vs. SCLC).")
+st.markdown("**How to read this chart:** Bars represent patient counts per genetic mutation, stacked by cancer type (NSCLC vs. SCLC). NSCLS cancer is defined as non-small cell lung cancer, while SCLC is small cell lung cancer.")
 st.markdown("**Observations:** Although 'No Mutation' represents 36.5% of records, EGFR (19.0%) and KRAS (13.2%) are the most frequently detected driver mutations.")
 
 st.divider()
@@ -162,10 +162,11 @@ st.markdown(
     "- **Vertical Axis (Y):** 100% normalized proportion comparing patients who survived (Yes) vs. did not survive (No).\n"
     "- **Color Encoding:** Green segments represent the survival rate percentage; red segments represent non-survival."
 )
-st.markdown("**Observations:**")
+st.markdown("**Final Observations:**")
 st.markdown(
     "- **Stage-Dependent Survival Cliff:** Survival drops drastically from 69.8% in Stage I to just 5.5% in Stage IV.\n"
     "- **Smoking Status Disparity:** Never Smokers exhibit a higher overall survival rate (42.5%) compared to Current Smokers (27.3%).\n"
     "- **Gender Discrepancy:** Female patients record a higher survival rate (41.6%) than Male patients (35.5%).\n"
     "- **Data Implication:** Clinical staging and early detection are primary determinants of survivability across all demographic groups."
+    "- **Data Implication:** Smoking status only tells a small fraction of the story when it comes to survivability and treatment options for patients. Additional factors such as genetic mutations and environmental exposures play significant roles."
 )

@@ -99,7 +99,7 @@ with row2_col2:
     fig_d4 = px.bar(
         surv_trend, x="Cancer_Stage", y="Percentage", color="Survived", barmode="stack",
         title="Survival Share Across Filtered Cancer Stages",
-        color_discrete_sequence=["#EF553B", "#00CC96"]
+        color_discrete_sequence=["#56B4E9", "#999999"]
     )
     fig_d4.update_layout(yaxis=dict(range=[0, 100]))
     st.plotly_chart(fig_d4, use_container_width=True)

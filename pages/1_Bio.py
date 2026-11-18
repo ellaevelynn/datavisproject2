@@ -19,7 +19,8 @@ INTRO = (
 
 PHOTO_PATH = "Headshot.jpeg"
 
-def find_asset(filename: str) -> str | None:
+def find_asset(filename: str) -> Optional[str]:
+    """Searches for an asset file in the `assets/` folder and returns its path if found, otherwise returns None."""
     try:
         script_dir = Path(__file__).resolve().parent
     except NameError:

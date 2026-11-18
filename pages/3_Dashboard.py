@@ -4,10 +4,17 @@ import plotly.express as px
 from pathlib import Path
 from datetime import datetime
 
-st.set_page_config(page_title="Lung Cancer Interactive Dashboard", layout="wide")
+st.set_page_config(page_title="Interactive Dashboard • All 4 Research Questions", page_icon="🔍", layout="wide")
 
-st.title("🔍 Interactive Lung Cancer Research Dashboard")
-st.markdown("Dynamic filtering and geospatial analysis addressing demographic risk and environmental exposure impacts[cite: 4].")
+with st.sidebar:
+    st.markdown("### Isabella Eaton")
+    st.caption("Data Science & Machine Learning • MSU Denver")
+    st.caption("Undergraduate Research Assistant • CU Anschutz Claw Lab")
+    st.markdown("[GitHub](https://github.com/ellaevelynn) • Denver, CO")
+    st.divider()
+
+st.title("Interactive Lung Cancer Research Dashboard")
+st.subheader("Dynamic Filtering & Multi-Visual Analysis Across All 4 Research Questions")
 
 @st.cache_data
 def load_data():
@@ -23,90 +30,92 @@ def load_data():
 
 df = load_data()
 if df is None:
-    st.warning("⚠️ `lung_cancer_dataset.csv` not found.")
+    st.warning("`lung_cancer_dataset.csv` not found in `data/` or root folder.")
     st.stop()
 
-# --- SIDEBAR INTERACTIVITY & CONTROLS ---
-st.sidebar.header("Demographic & Exposure Filters")
-
-# 1. Map Metric Selector
-map_metric = st.sidebar.selectbox("Map Color Metric", options=["Total Case Count", "Share of Dataset Diagnoses (%)"])
-
-# 2. Demographic & Cohort Sliders / Selectors
-selected_region = st.sidebar.selectbox("Filter by WHO Region", options=["All Regions"] + list(df["WHO_Region"].unique()))
-selected_gender = st.sidebar.multiselect("Filter by Gender", options=df["Gender"].unique(), default=list(df["Gender"].unique()))
-selected_smoking = st.sidebar.multiselect("Filter by Smoking Status", options=df["Smoking_Status"].unique(), default=list(df["Smoking_Status"].unique()))
-selected_year = st.sidebar.slider("Diagnosis Year", int(df["Diagnosis_Year"].min()), int(df["Diagnosis_Year"].max()), (2015, 2026))
-age_range = st.sidebar.slider("Patient Age Range", int(df["Age"].min()), int(df["Age"].max()), (30, 85))
-
-# 3. Exposure Combination Filters
-selected_pollution = st.sidebar.multiselect("Air Pollution Exposure", options=df["Air_Pollution_Exposure"].unique(), default=list(df["Air_Pollution_Exposure"].unique()))
-radon_toggle = st.sidebar.checkbox("Isolate Radon Exposure (Yes)", value=False)
-asbestos_toggle = st.sidebar.checkbox("Isolate Asbestos Exposure (Yes)", value=False)
+# --- SIDEBAR FILTERS (≥2 FILTERS) ---
+st.sidebar.header("Dashboard Controls & Filters")
+map_metric = st.sidebar.selectbox("Map Color Metric", options=["Total Case Count", "Share of Filtered Cohort (%)"])
+selected_regions = st.sidebar.multiselect("WHO Regions", options=sorted(df["WHO_Region"].unique()), default=sorted(df["WHO_Region"].unique()))
+selected_smoking = st.sidebar.multiselect("Smoking Status", options=sorted(df["Smoking_Status"].unique()), default=sorted(df["Smoking_Status"].unique()))
+selected_mutation = st.sidebar.multiselect("Genetic Mutation", options=sorted(df["Genetic_Mutation"].unique()), default=sorted(df["Genetic_Mutation"].unique())[:4])
+age_range = st.sidebar.slider("Patient Age Range (Years)", min_value=int(df["Age"].min()), max_value=int(df["Age"].max()), value=(30, 85))
 
 # Apply Filters
-filtered = df.copy()
-if selected_region != "All Regions":
-    filtered = filtered[filtered["WHO_Region"] == selected_region]
-if selected_gender:
-    filtered = filtered[filtered["Gender"].isin(selected_gender)]
-if selected_smoking:
-    filtered = filtered[filtered["Smoking_Status"].isin(selected_smoking)]
-filtered = filtered[(filtered["Diagnosis_Year"] >= selected_year[0]) & (filtered["Diagnosis_Year"] <= selected_year[1])]
-filtered = filtered[(filtered["Age"] >= age_range[0]) & (filtered["Age"] <= age_range[1])]
-if selected_pollution:
-    filtered = filtered[filtered["Air_Pollution_Exposure"].isin(selected_pollution)]
-if radon_toggle:
-    filtered = filtered[filtered["Radon_Exposure"] == "Yes"]
-if asbestos_toggle:
-    filtered = filtered[filtered["Asbestos_Exposure"] == "Yes"]
+filtered = df[
+    df["WHO_Region"].isin(selected_regions) &
+    df["Smoking_Status"].isin(selected_smoking) &
+    df["Genetic_Mutation"].isin(selected_mutation) &
+    (df["Age"] >= age_range[0]) &
+    (df["Age"] <= age_range[1])
+]
 
-# --- KPIS ---
+if filtered.empty:
+    st.warning("No patient records match your active filter combination. Please broaden your sidebar selections.")
+    st.stop()
+
+# --- 4 KPIS ---
 k1, k2, k3, k4 = st.columns(4)
-k1.metric("Filtered Patient Records", f"{len(filtered):,}")
-k2.metric("Average Patient Age", f"{filtered['Age'].mean():.1f} years")
-k3.metric("Average Survival Duration", f"{filtered['Survival_Months'].mean():.1f} months")
-k4.metric("Metastasis Rate", f"{(filtered['Metastasis'] == 'Yes').mean() * 100:.1f}%")
+k1.metric("Filtered Patients", f"{len(filtered):,}", f"{(len(filtered)/len(df)*100):.1f}% of total")
+k2.metric("Mean Diagnosis Age", f"{filtered['Age'].mean():.1f} yrs", f"Median: {filtered['Age'].median():.0f} yrs")
+k3.metric("Mean Survival Duration", f"{filtered['Survival_Months'].mean():.1f} mos", f"Survival Rate: {(filtered['Survived']=='Yes').mean()*100:.1f}%")
+k4.metric("High Air Pollution", f"{(filtered['Air_Pollution_Exposure']=='High').mean()*100:.1f}%", f"Never Smoker %: {(filtered['Smoking_Status']=='Never Smoked').mean()*100:.1f}%")
 
 st.divider()
 
-# --- INTERACTIVE DASHBOARD VISUALS ---
-dcol1, dcol2 = st.columns(2)
+# --- LINKED VISUALS (COVERING ALL 4 RESEARCH QUESTIONS) ---
+row1_col1, row1_col2 = st.columns(2)
 
-with dcol1:
-    st.subheader("Global Choropleth Map (Interactive Metric)")
+with row1_col1:
+    st.subheader("RQ1: Regional Demographic Distribution")
     country_agg = filtered.groupby("Country").size().reset_index(name="Total Case Count")
-    country_agg["Share of Dataset Diagnoses (%)"] = (country_agg["Total Case Count"] / len(filtered) * 100).fillna(0)
-    
-    fig_map = px.choropleth(
-        country_agg, locations="Country", locationmode="country names",
-        color=map_metric, title=f"Country Map ({map_metric})", color_continuous_scale="Viridis"
-    )
-    st.plotly_chart(fig_map, use_container_width=True)
+    country_agg["Share of Filtered Cohort (%)"] = (country_agg["Total Case Count"] / len(filtered)) * 100
+    fig_d1 = px.choropleth(country_agg, locations="Country", locationmode="country names", color=map_metric, title=f"Country Map ({map_metric})", color_continuous_scale="Viridis")
+    fig_d1.update_layout(margin=dict(l=0, r=0, t=40, b=0))
+    st.plotly_chart(fig_d1, use_container_width=True)
 
-with dcol2:
-    st.subheader("Regional Environmental Hazard Burden")
-    reg_env = filtered.groupby(["WHO_Region", "Air_Pollution_Exposure"]).size().reset_index(name="Patient Count")
-    fig_reg = px.bar(
-        reg_env, x="WHO_Region", y="Patient Count", color="Air_Pollution_Exposure", barmode="group",
-        title="Air Pollution Burdens Across WHO Regions"
-    )
-    fig_reg.update_xaxes(tickangle=25)
-    st.plotly_chart(fig_reg, use_container_width=True)
+with row1_col2:
+    st.subheader("RQ2: Environmental Air Pollution Exposure")
+    env_counts = filtered.groupby(["Air_Pollution_Exposure", "Smoking_Status"]).size().reset_index(name="Count")
+    fig_d2 = px.bar(env_counts, x="Air_Pollution_Exposure", y="Count", color="Smoking_Status", barmode="group", title="Air Pollution Exposure by Smoking Status")
+    st.plotly_chart(fig_d2, use_container_width=True)
+
+row2_col1, row2_col2 = st.columns(2)
+
+with row2_col1:
+    st.subheader("RQ3: Genetic Mutation Frequencies")
+    mut_counts = filtered["Genetic_Mutation"].value_counts().reset_index()
+    mut_counts.columns = ["Mutation", "Count"]
+    fig_d3 = px.bar(mut_counts, x="Mutation", y="Count", color="Mutation", title="Filtered Genetic Mutation Counts")
+    fig_d3.update_layout(showlegend=False)
+    st.plotly_chart(fig_d3, use_container_width=True)
+
+with row2_col2:
+    st.subheader("RQ4: Population Disproportionality (Age & Gender)")
+    fig_d4 = px.histogram(filtered, x="Age", color="Gender", barmode="group", nbins=12, title="Filtered Age & Gender Distribution")
+    st.plotly_chart(fig_d4, use_container_width=True)
 
 st.divider()
 
-# --- NARRATIVE INSIGHTS ---
-st.subheader("Dashboard Insights & Findings")
+# --- NARRATIVE SECTION (3-6 BULLETS) ---
+st.subheader("Dashboard Insights & Conclusions")
 st.markdown(
-    "- **Interactive Filtering:** Isolating non-smokers with high air pollution exposure reveals prominent clusters in specific WHO regions[cite: 4].\n"
-    "- **Geospatial Density:** Regional case counts highlight disproportionate reporting across Western Pacific and European cohorts.\n"
-    "- **Environmental Risk:** Combining radon and asbestos filters with age sliders demonstrates how occupational hazards compound survival outcomes.\n"
-    "- **Dataset Limitations:** Synthetic clinical data represent modeled approximations and should be evaluated descriptively rather than diagnostically."
+    "- **RQ1 Demographics:** Regional filtering confirms that Western Pacific and European sectors maintain the highest patient volumes across interactive selections.\n"
+    "- **RQ2 Environmental Impact:** High and moderate air pollution remain pervasive across filtered cohorts, appearing frequently even among non-smoking patient subsets.\n"
+    "- **RQ3 Genetic Drivers:** Actionable mutations such as EGFR and KRAS remain prominent oncogenic drivers across filtered diagnostic subgroups.\n"
+    "- **RQ4 Population Disproportionality:** Male patients and older adult brackets (55–70) continue to represent higher recorded patient densities across the filtered subset.\n"
+    "- **Dataset Limitations:** Synthetic clinical data reflect research benchmarking parameters and should be evaluated descriptively rather than diagnostically."
 )
 
 st.divider()
+
+# --- REPRODUCIBILITY & ETHICS FOOTER ---
 st.caption(
-    "🔗 **Data Source:** [Kaggle Lung Cancer Dataset](https://www.kaggle.com/) | "
-    f"⏱️ **Last Refreshed:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    "**Ethics Note:** This dataset represents clinical oncology records compiled for research benchmarking. "
+    "Because regional and demographic distributions reflect specific sampling structures, patterns shown here "
+    "are descriptive only and should not be used for individual clinical diagnosis or broad epidemiological generalizations."
+)
+st.caption(
+    f"**Data Source:** [Kaggle Lung Cancer Dataset](https://www.kaggle.com/) (`lung_cancer_dataset.csv`, 2,000 rows) | "
+    f"**Last Refreshed:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
 )

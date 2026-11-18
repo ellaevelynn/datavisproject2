@@ -3,13 +3,17 @@ import pandas as pd
 import plotly.express as px
 from pathlib import Path
 
-st.set_page_config(page_title="Lung Cancer EDA Gallery", layout="wide")
+st.set_page_config(page_title="EDA Gallery • All 4 Research Questions", page_icon="📊", layout="wide")
 
-st.title("📊 Exploratory Data Analysis (EDA) Gallery")
-st.markdown(
-    "Exploratory data analysis on the global lung cancer dataset, directly addressing "
-    "demographic makeup, regional diagnosis rates, and environmental risk factors."
-)
+with st.sidebar:
+    st.markdown("### Isabella Eaton")
+    st.caption("Data Science & Machine Learning • MSU Denver")
+    st.caption("Undergraduate Research Assistant • CU Anschutz Claw Lab")
+    st.markdown("[GitHub](https://github.com/ellaevelynn) • Denver, CO")
+    st.divider()
+
+st.title("Exploratory Data Analysis (EDA) Gallery")
+st.subheader("Comprehensive Visualizations Across All 4 Research Questions (n = 2,000)")
 
 @st.cache_data
 def load_data():
@@ -25,122 +29,96 @@ def load_data():
 
 df = load_data()
 if df is None:
-    st.warning("⚠️ `lung_cancer_dataset.csv` not found in `data/` or root folder.")
+    st.warning("`lung_cancer_dataset.csv` not found in `data/` or root folder.")
     st.stop()
 
-# ==========================================
-# RESEARCH QUESTION 1 CHARTS
-# ==========================================
-st.header("Research Question 1: Understanding Demographic Makeup & Population Risk")
+df["Age_Bracket"] = pd.cut(
+    df["Age"],
+    bins=[0, 45, 55, 65, 75, 100],
+    labels=["<45", "45–55", "56–65", "66–75", "76+"]
+)
 
-# Chart 1A: Choropleth World Map & Summary Bar Chart
-st.subheader("1A. Choropleth World Map of Lung Cancer Diagnoses")
-col1, col2 = st.columns([2, 1])
+# ==============================================================================
+# RESEARCH QUESTION 1
+# ==============================================================================
+st.header("1. What is the general demographic makeup across patients in this dataset? Is one demographic recorded more than another? What subgroups present the highest risk in this dataset?")
+st.markdown("*Justification: Understanding representation across region, age, gender, and smoking stats establishes dataset bias and generalizability before modeling.*")
+
+st.subheader("Visualization 1.b.i: Choropleth World Map & WHO Region Bar Chart")
+map_metric = st.selectbox("Map Metric Selector (Interactive):", options=["Total Case Count", "Share of Dataset Diagnoses (%)"], key="eda_map_metric")
+
+col1, col2 = st.columns([1.4, 1])
 with col1:
-    country_counts = df.groupby("Country").size().reset_index(name="Case_Count")
-    fig_map = px.choropleth(
-        country_counts, locations="Country", locationmode="country names",
-        color="Case_Count", title="Global Distribution of Lung Cancer Diagnoses",
-        color_continuous_scale="Reds"
-    )
+    country_counts = df.groupby("Country").size().reset_index(name="Total Case Count")
+    country_counts["Share of Dataset Diagnoses (%)"] = (country_counts["Total Case Count"] / len(df)) * 100
+    fig_map = px.choropleth(country_counts, locations="Country", locationmode="country names", color=map_metric, title=f"Global Map ({map_metric})", color_continuous_scale="Viridis")
+    fig_map.update_layout(margin=dict(l=0, r=0, t=40, b=0))
     st.plotly_chart(fig_map, use_container_width=True)
 with col2:
-    st.markdown("**How to read this chart:**")
-    st.markdown(
-        "- **Map shading:** Coded by total diagnosis case counts per country.\n"
-        "- **Color intensity:** Darker red hues indicate higher recorded patient volumes.\n"
-        "- **Observations:** Cases span across 60 countries, with a notable increase in patient cases in China, India, and the United States. There is limited patient data for many African and South American countries, which may reflect underreporting or data collection gaps."
-    )
+    who_counts = df["WHO_Region"].value_counts().reset_index()
+    who_counts.columns = ["WHO_Region", "Case Count"]
+    fig_bar = px.bar(who_counts, x="Case Count", y="WHO_Region", orientation="h", title="Summary Bar Chart by WHO Region", color="WHO_Region")
+    fig_bar.update_layout(showlegend=False, yaxis_title="", xaxis_title="Patients")
+    st.plotly_chart(fig_bar, use_container_width=True)
+
+st.markdown("**How to read this chart:** World map shading represents diagnosis rates or percentage shares; the regional bar chart ranks total patient volume.")
+st.markdown("**Observations:** Western Pacific accounts for the highest recorded volume (31.6%), while Africa represents 6.0%.")
 
 st.divider()
 
-# Chart 1B: Grouped Histogram (Age split by Gender and Smoking Status)
-st.subheader("1B. Age Distribution Split by Gender and Smoking Status")
-col1, col2 = st.columns([2, 1])
-with col1:
-    fig_hist = px.histogram(
-        df, x="Age", color="Gender", facet_col="Smoking_Status",
-        title="Age Histogram by Smoking Status and Gender", barmode="group"
-    )
-    st.plotly_chart(fig_hist, use_container_width=True)
-with col2:
-    st.markdown("**How to read this chart:**")
-    st.markdown(
-        "- **X-axis:** Patient age in years.\n"
-        "- **Facets:** Split into smoking history categories (Never Smoked, Former, Current).\n"
-        "- **Observations:** Never smokers represent a substantial share of patient records across adult age brackets. This opens for additional questions on environmental and occupational risk factors beyond smoking history."
-    )
+# ==============================================================================
+# RESEARCH QUESTION 2
+# ==============================================================================
+st.header("2. How do environmental factors impact the development of lung cancer? Is there one environmental factor that is disproportionately present in patients diagnosed with lung cancer?")
+st.markdown("*Justification: Environmental exposures are critical drivers, especially in the never-smokers cohort, informing targeted public health interventions.*")
+
+st.subheader("Visualization 2.b.ii: Horizontal Prevalence Bar Chart of Environmental Factors")
+prev_df = pd.DataFrame({
+    "Environmental Factor": ["Moderate/High Air Pollution", "Secondhand Smoke", "Occupational Hazard", "Radon Exposure", "Asbestos Exposure"],
+    "Prevalence (%)": [
+        (df["Air_Pollution_Exposure"].isin(["Moderate", "High"])).mean() * 100,
+        (df["Secondhand_Smoke"] == "Yes").mean() * 100,
+        (df["Occupational_Hazard"] == "Yes").mean() * 100,
+        (df["Radon_Exposure"] == "Yes").mean() * 100,
+        (df["Asbestos_Exposure"] == "Yes").mean() * 100,
+    ]
+}).sort_values("Prevalence (%)", ascending=True)
+
+fig_prev = px.bar(prev_df, x="Prevalence (%)", y="Environmental Factor", orientation="h", text=prev_df["Prevalence (%)"].round(1).astype(str) + "%", title="Ranked Prevalence Percentage of Environmental Factors", color="Prevalence (%)", color_continuous_scale="Teal")
+fig_prev.update_layout(xaxis=dict(range=[0, 90]), showlegend=False)
+st.plotly_chart(fig_prev, use_container_width=True)
+
+st.markdown("**How to read this chart:** The horizontal axis displays the percentage of the 2,000 diagnosed patients exposed to each environmental hazard.")
+st.markdown("**Observations:** Air pollution affects 76.4% of patients and secondhand smoke affects 47.5%, highlighting widespread ambient exposure.")
 
 st.divider()
 
-# Chart 1C: Normalized Stacked Bar Chart (Cancer Stage across Demographic Intersections)
-st.subheader("1C. Normalized Stacked Bar Chart of Cancer Stages")
-col1, col2 = st.columns([2, 1])
-with col1:
-    df["Age_Bracket"] = pd.cut(df["Age"], bins=[0, 45, 60, 75, 100], labels=["<45", "45-60", "61-75", "75+"])
-    stage_demo = df.groupby(["Age_Bracket", "Gender", "Cancer_Stage"]).size().reset_index(name="Count")
-    fig_norm = px.bar(
-        stage_demo, x="Age_Bracket", y="Count", color="Cancer_Stage", barmode="stack",
-        title="Cancer Stage Proportions Across Demographic Intersections"
-    )
-    st.plotly_chart(fig_norm, use_container_width=True)
-with col2:
-    st.markdown("**How to read this chart:**")
-    st.markdown(
-        "- **X-axis:** Age brackets.\n- **Stacked segments:** Cancer stage proportions (Stage I to IV).\n"
-        "- **Observations:** Stage distributions remain consistent across age cohorts."
-    )
+# ==============================================================================
+# RESEARCH QUESTION 3
+# ==============================================================================
+st.header("3. What genetic factors most lead to lung cancer? Which oncogenic mutations and driver profiles are most prevalent across patient records?")
+st.markdown("*Justification: Identifying primary genetic driver mutations (EGFR, KRAS, ALK, etc.) provides essential insights into molecular oncology and targeted therapeutic paths.*")
+
+st.subheader("Visualization 3.a: Stacked Bar Chart of Genetic Mutations by Cancer Type")
+mut_df = df.groupby(["Genetic_Mutation", "Cancer_Type"]).size().reset_index(name="Patient Count")
+fig_mut = px.bar(mut_df, x="Genetic_Mutation", y="Patient Count", color="Cancer_Type", barmode="stack", title="Genetic Mutations Across Histological Subtypes")
+fig_mut.update_xaxes(tickangle=30)
+st.plotly_chart(fig_mut, use_container_width=True)
+
+st.markdown("**How to read this chart:** Bars represent patient counts per genetic mutation, stacked by cancer type (NSCLC vs. SCLC).")
+st.markdown("**Observations:** Although 'No Mutation' represents 36.5% of records, EGFR (19.0%) and KRAS (13.2%) are the most frequently detected driver mutations.")
 
 st.divider()
 
-# ==========================================
-# RESEARCH QUESTION 2 CHARTS
-# ==========================================
-st.header("Research Question 2: Understanding Environmental Impact & Risk Factors")
+# ==============================================================================
+# RESEARCH QUESTION 4
+# ==============================================================================
+st.header("4. Does lung cancer disproportionately impact a population over another? How do demographic intersections of age, gender, and smoking status influence diagnosis and survival?")
+st.markdown("*Justification: Examining demographic and clinical intersections reveals population vulnerabilities, health disparities, and patient risk profiles.*")
 
-# Chart 2A: Co-occurrence Heatmap
-st.subheader("2A. Environmental Exposure & Smoking Status Co-occurrence Heatmap")
-col1, col2 = st.columns([2, 1])
-with col1:
-    # Cross-tabulation matrix of Air Pollution vs Smoking Status
-    heatmap_data = pd.crosstab(df["Air_Pollution_Exposure"], df["Smoking_Status"])
-    fig_heat = px.imshow(
-        heatmap_data, text_auto=True, title="Air Pollution Exposure vs. Smoking Status Matrix",
-        color_continuous_scale="Blues"
-    )
-    st.plotly_chart(fig_heat, use_container_width=True)
-with col2:
-    st.markdown("**How to read this chart:**")
-    st.markdown(
-        "- **Matrix cells:** Overlapping counts of environmental air pollution levels and smoking status.\n"
-        "- **Color intensity:** Darker blue indicates higher patient co-occurrence.\n"
-        "- **Observations:** High and moderate air pollution exposures affect both smokers and never-smokers alike. There is a noticible increase in impact on Moderate and High air pollution exposure levels for current smokers and non-smokers, which may compound risk factors for lung cancer development."
-    )
+st.subheader("Visualization 4.a: Grouped Histogram of Age by Gender and Smoking Status")
+fig_hist = px.histogram(df, x="Age", color="Gender", facet_col="Smoking_Status", barmode="group", nbins=12, title="Age Distribution Split by Gender and Smoking Status")
+st.plotly_chart(fig_hist, use_container_width=True)
 
-st.divider()
-
-# Chart 2B: Horizontal Prevalence Bar Chart
-st.subheader("2B. Horizontal Prevalence Bar Chart of Environmental Factors")
-col1, col2 = st.columns([2, 1])
-with col1:
-    env_prevalence = pd.DataFrame({
-        "Exposure Factor": ["Air Pollution (Moderate/High)", "Secondhand Smoke", "Radon Exposure", "Asbestos Exposure"],
-        "Prevalence Percentage": [
-            (df["Air_Pollution_Exposure"].isin(["Moderate", "High"])).mean() * 100,
-            (df["Secondhand_Smoke"] == "Yes").mean() * 100,
-            (df["Radon_Exposure"] == "Yes").mean() * 100,
-            (df["Asbestos_Exposure"] == "Yes").mean() * 100
-        ]
-    })
-    fig_prev = px.bar(
-        env_prevalence, x="Prevalence Percentage", y="Exposure Factor", orientation="h",
-        title="Ranked Prevalence Percentage of Environmental Factors", text_auto=".1f"
-    )
-    st.plotly_chart(fig_prev, use_container_width=True)
-with col2:
-    st.markdown("**How to read this chart:**")
-    st.markdown(
-        "- **X-axis:** Percentage of total patient cohort exposed[cite: 4].\n"
-        "- **Y-axis:** Environmental hazard type.\n"
-        "- **Observations:** Air pollution and secondhand smoke present the highest environmental prevalence rates. Radon and Asbestos exposures are less common but still present in a notable share of patient records, highlighting the need for occupational and environmental health interventions, especially when a majority of patient records in this dataset identify as non-smokers."
-    )
+st.markdown("**How to read this chart:** Faceted histograms divide patient ages across smoking history groups, colored by gender.")
+st.markdown("**Observations:** Male patients represent 62.4% of the cohort. Crucially, 65.5% of patients are classified as 'Never Smoked', underscoring major non-smoking risk factors across adult age brackets.")

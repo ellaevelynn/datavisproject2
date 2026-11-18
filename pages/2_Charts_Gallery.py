@@ -89,7 +89,6 @@ st.markdown("**Observations:**")
 st.markdown(
     "- Western Pacific accounts for the highest recorded patient volume in the dataset (31.6%), followed by Europe and the Americas.\n"
     "- Africa represents the smallest share of recorded cases (6.0%), indicating substantial geographic underrepresentation.\n"
-    "- Country-level concentration clusters around major clinical research hubs rather than reflecting true global population incidence."
 )
 
 st.subheader("Visualization 3 (Faceted Grouped Histogram): Age Distribution by Gender & Smoking Status")
@@ -116,7 +115,7 @@ st.markdown("**Observations:**")
 st.markdown(
     "- Male patients account for 62.4% of recorded cases across the dataset, appearing more frequently than female patients in nearly every age bracket.\n"
     "- Diagnosis counts peak between ages 55 and 74 across both male and female cohorts.\n"
-    "- Crucially, 65.5% of patients are recorded under 'Never Smoked', demonstrating that non-smoking lung cancer cases form the majority of this dataset."
+    "- Crucially, 65.5% of patients are recorded under 'Never Smoked', demonstrating that non-smoking lung cancer cases form the majority of this dataset. This indicates that there are significant reasons beyond tobacco use that could cause lung cancer to develop."
 )
 
 st.divider()
@@ -190,6 +189,17 @@ with col4:
         st.plotly_chart(fig_air_stack, use_container_width=True)
         st.caption("Alt-text: 100% stacked bar chart comparing the proportion of lung cancer histological types across low, moderate, and high air pollution exposure levels.")
 
+st.markdown("**How to read this chart:**")
+st.markdown(
+    "- **Facet Panels:** Separate columns divide the cohort into distinct cancer categories ('NSCLC' and 'SCLC').\n"
+    "- **Horizontal & Vertical Axes:** in the left chart, the X-axis measures percentage of patients exposed to each environmental factor; in the right chart, the Y-axis is normalized to 100% to show subtype shares.\n"
+    "- **Color Encoding:** High-contrast Okabe-Ito Blue (`#0072B2`) and Orange (`#E69F00`) distinguish cancer subtypes side-by-side."
+)
+st.markdown("**Observations:**")
+st.markdown(
+    "- Patients exposed to moderate or high air pollution represent the largest environmental exposure group (42.3%), followed by secondhand smoke (28.7%).\n" \
+    "- Non-small cell lung cancer (NSCLC) subtypes dominate across all air pollution exposure levels, while small cell lung cancer (SCLC) remains a minority.\n" \
+)
 # ==============================================================================
 # RESEARCH QUESTION 3 (SANKEY DIAGRAM + TUMOR DIAGNOSTICS)
 # ==============================================================================

@@ -6,11 +6,10 @@ st.title("🚀 Future Works, Reflection, & Clinical Ethics")
 
 st.subheader("Future Next Steps")
 st.markdown(
-    "1. **Predictive Modeling:** Build machine learning classifiers (XGBoost/Random Forest) to predict lung cancer staging based on environmental exposure combinations.\n"
-    "2. **Geospatial API Integration:** Connect live air quality index (AQI) telemetry APIs to overlay real-time pollution metrics onto regional patient maps.\n"
-    "4. **Bilingual Localization:** Implement Spanish language toggles to improve communication accessibility for diverse patient populations.\n"
-    "5. **Interactive Patient Journey Simulation:** Develop a patient-centric simulation tool to visualize how early detection, treatment options, and lifestyle factors influence survivability outcomes."
-    "6. **Identify more expansive datasets:** Explore additional datasets to expand the scope of research questions and improve model generalizability. Exploring additional datasets will alos allow for regions that were not previously depicted in the current dataset to be included in the analysis. This will allow for a more comprehensive understanding of lung cancer survivability and risk factors across different populations."
+    "1. **Enhanced Data Integration:** Incorporate additional patient datasets, including longitudinal studies and multi-omics data, to improve model robustness and generalizability.\n"
+    "2. **Bilingual Localization:** Implement Spanish language toggles to improve communication accessibility for diverse patient populations.\n"
+    "3. **Interactive Patient Journey Simulation:** Develop a patient-centric simulation tool to visualize how early detection, treatment options, and lifestyle factors influence survivability outcomes."
+    "4. **Identify more expansive datasets:** Explore additional datasets to expand the scope of research questions and improve model generalizability. Exploring additional datasets will alos allow for regions that were not previously depicted in the current dataset to be included in the analysis. This will allow for a more comprehensive understanding of lung cancer survivability and risk factors across different populations."
 )
 
 st.divider()
@@ -26,7 +25,7 @@ st.divider()
 st.subheader("Clinical Ethics Note")
 st.markdown(
     "> This dataset includes clinical research records related to oncology diagnoses. Because the data "
-    "come from benchmark research repositories, they may include sampling biases and do not necessarily "
+    "comes from benchmark research repositories, they may include sampling biases and do not necessarily "
     "represent all global patient demographics. The visualizations show patterns and correlations but should "
     "not be used to make individual diagnostic judgments or clinical treatment decisions."
 )

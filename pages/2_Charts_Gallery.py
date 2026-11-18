@@ -13,7 +13,7 @@ with st.sidebar:
     st.divider()
 
 st.title("Exploratory Data Analysis (EDA) Gallery")
-st.subheader("Comprehensive Visualizations Across All Research Questions (n = 2,000)")
+st.subheader("Interpreting Results Across Patient Data (n=2000 samples) ")
 
 @st.cache_data
 def load_data():
@@ -42,7 +42,7 @@ df["Age_Bracket"] = pd.cut(
 # RESEARCH QUESTION 1
 # ==============================================================================
 st.header("1. What is the general demographic makeup across patients in this dataset? Is one demographic recorded more than another? What subgroups present the highest risk in this dataset?")
-st.markdown("*Justification: Understanding representation across region, age, gender, and smoking stats establishes dataset bias and generalizability before modeling.*")
+st.markdown("*Justification: Understanding representation across region, age, gender, and smoking stats establishes dataset bias and generalizability before furhter modeling. It is imporant to understand who may be underrepresented in this dataset to know how to improve future analysis and dataset selection*")
 
 st.subheader("Visualization 1 & 2: Choropleth World Map & WHO Region Bar Chart")
 map_metric = st.selectbox("Map Metric Selector (Interactive):", options=["Total Case Count", "Share of Dataset Diagnoses (%)"], key="eda_map_metric")
@@ -116,7 +116,7 @@ st.divider()
 st.header("4. Does lung cancer disproportionately impact a population over another? How do demographic intersections of age, gender, and smoking status influence diagnosis and survival?")
 st.markdown("*Justification: Examining demographic and clinical intersections reveals population vulnerabilities, health disparities, and patient risk profiles.*")
 
-st.subheader("Visualization 4: Grouped Histogram of Age by Gender and Smoking Status")
+st.subheader("Visualization 5: Grouped Histogram of Age by Gender and Smoking Status")
 fig_hist = px.histogram(df, x="Age", color="Gender", facet_col="Smoking_Status", barmode="group", nbins=12, title="Age Distribution Split by Gender and Smoking Status")
 st.plotly_chart(fig_hist, use_container_width=True)
 
@@ -125,7 +125,7 @@ st.markdown("**Observations:** Male patients represent 62.4% of the cohort. Cruc
 
 st.divider()
 
-st.subheader("Visualization 5: Survivability Breakdown Across Cancer Stages & Demographic Intersections")
+st.subheader("Visualization 6: Survivability Breakdown Across Cancer Stages & Demographic Intersections")
 st.markdown("**Explored Question:** How do cancer stage progression and demographic subgroups intersect to impact patient survival rates?")
 
 survival_dim = st.selectbox(

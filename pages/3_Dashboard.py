@@ -113,7 +113,7 @@ st.markdown(
     "- **RQ2 Environmental Impact:** High and moderate air pollution remain pervasive across filtered cohorts, appearing frequently even among non-smoking patient subgroups.\n"
     "- **RQ3 Genetic Drivers:** Actionable mutations such as EGFR and KRAS remain prominent oncogenic drivers across filtered diagnostic subgroups.\n"
     "- **RQ4 Survivability Dynamics:** Interacting cancer stage and smoking filters on the dashboard highlights how early detection (Stage I) preserves survival while advanced metastasis (Stage IV) drastically reduces survival outcomes.\n"
-    "- **Dataset Limitations:** Synthetic clinical data reflect research benchmarking parameters and should be evaluated descriptively rather than diagnostically."
+    "- **Dataset Limitations:**  This dataset was collected from benchmark research repositories and may not represent all global patient demographics. Patterns shown here are descriptive only and should not be used for individual clinical diagnosis or broad epidemiological generalizations."
 )
 
 st.divider()

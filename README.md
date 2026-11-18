@@ -23,8 +23,8 @@ The multi-page Streamlit application is organized into the following core sectio
 * **Welcome Hub (`app.py`):** The primary landing page providing system introductions, project branding, and direct navigation buttons across all application modules.
 * **Professional Bio (`1_Bio.py`):** Showcases professional background, technical toolkits, visualization philosophy, coursework highlights, and interactive modal previewers for academic research posters and peer-reviewed publications.
 * **EDA Gallery (`2_Charts_Gallery.py`):** Features comprehensive exploratory data analyses covering all **four research questions** across multiple distinct chart types, complete with plain-language reading guides and data-backed observations.
-* **Interactive Dashboard (`3_Dashboard.py`):** Powered by reactive sidebar filters, live KPIs, and linked visual cards allowing users to dynamically examine patient survival, geographic distribution, and environmental hazard co-occurrences.
-* **Future Work & Clinical Ethics (`4_Future_Work.py`):** Outlines predictive modeling extensions, geospatial API integrations, and important clinical ethics considerations regarding benchmark healthcare datasets.
+* **Interactive Dashboard (`3_Dashboard.py`):** Powered by reactive sidebar filters and linked visual cards allowing users to examine patient survival, geographic distribution, and environmental hazard co-occurrences.
+* **Future Work & Clinical Ethics (`4_Future_Work.py`):** Outlines next steps and highlights important ethical considerations for utilizing visualizing human data.
 
 ---
 

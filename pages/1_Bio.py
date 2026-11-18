@@ -18,6 +18,14 @@ INTRO = (
     "accessible and easily communicable across diverse demographics."
 )
 
+HIGHLIGHTS=(
+    "• Experience with R, Python, and Tableau.\n"
+    "• Experince in data cleaning, wrangling, and visualization.\n"
+    "• Experience with mixed-methods research and qualitative coding.\n"
+)
+VISUALIZATION_PHILOSOPHY = (
+    "I belive data visualization is a powerful and integral tool for making research and education accessible to diverse audiences. I strive to create visualizations that are not only visually appealing but also informative, accurate, and ethically responsible. My goal is to communicate complex data in a way that is understandable and actionable for both researchers and the general public." )
+
 PHOTO_PATH = "Headshot.jpeg"
 
 def find_asset(filename: str) -> Optional[str]:

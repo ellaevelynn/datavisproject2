@@ -13,7 +13,7 @@ with st.sidebar:
     st.divider()
 
 st.title("Exploratory Data Analysis (EDA) Gallery")
-st.subheader("Comprehensive Visualizations Across All 4 Research Questions (n = 2,000)")
+st.subheader("Comprehensive Visualizations Across All Research Questions (n = 2,000)")
 
 @st.cache_data
 def load_data():
@@ -44,7 +44,7 @@ df["Age_Bracket"] = pd.cut(
 st.header("1. What is the general demographic makeup across patients in this dataset? Is one demographic recorded more than another? What subgroups present the highest risk in this dataset?")
 st.markdown("*Justification: Understanding representation across region, age, gender, and smoking stats establishes dataset bias and generalizability before modeling.*")
 
-st.subheader("Visualization 1.b.i: Choropleth World Map & WHO Region Bar Chart")
+st.subheader("Visualization 1 & 2: Choropleth World Map & WHO Region Bar Chart")
 map_metric = st.selectbox("Map Metric Selector (Interactive):", options=["Total Case Count", "Share of Dataset Diagnoses (%)"], key="eda_map_metric")
 
 col1, col2 = st.columns([1.4, 1])
@@ -72,7 +72,7 @@ st.divider()
 st.header("2. How do environmental factors impact the development of lung cancer? Is there one environmental factor that is disproportionately present in patients diagnosed with lung cancer?")
 st.markdown("*Justification: Environmental exposures are critical drivers, especially in the never-smokers cohort, informing targeted public health interventions.*")
 
-st.subheader("Visualization 2.b.ii: Horizontal Prevalence Bar Chart of Environmental Factors")
+st.subheader("Visualization 3: Horizontal Prevalence Bar Chart of Environmental Factors")
 prev_df = pd.DataFrame({
     "Environmental Factor": ["Moderate/High Air Pollution", "Secondhand Smoke", "Occupational Hazard", "Radon Exposure", "Asbestos Exposure"],
     "Prevalence (%)": [
@@ -99,7 +99,7 @@ st.divider()
 st.header("3. What genetic factors most lead to lung cancer? Which oncogenic mutations and driver profiles are most prevalent across patient records?")
 st.markdown("*Justification: Identifying primary genetic driver mutations (EGFR, KRAS, ALK, etc.) provides essential insights into molecular oncology and targeted therapeutic paths.*")
 
-st.subheader("Visualization 3.a: Stacked Bar Chart of Genetic Mutations by Cancer Type")
+st.subheader("Visualization 4: Stacked Bar Chart of Genetic Mutations by Cancer Type")
 mut_df = df.groupby(["Genetic_Mutation", "Cancer_Type"]).size().reset_index(name="Patient Count")
 fig_mut = px.bar(mut_df, x="Genetic_Mutation", y="Patient Count", color="Cancer_Type", barmode="stack", title="Genetic Mutations Across Histological Subtypes")
 fig_mut.update_xaxes(tickangle=30)
@@ -116,9 +116,56 @@ st.divider()
 st.header("4. Does lung cancer disproportionately impact a population over another? How do demographic intersections of age, gender, and smoking status influence diagnosis and survival?")
 st.markdown("*Justification: Examining demographic and clinical intersections reveals population vulnerabilities, health disparities, and patient risk profiles.*")
 
-st.subheader("Visualization 4.a: Grouped Histogram of Age by Gender and Smoking Status")
+st.subheader("Visualization 4: Grouped Histogram of Age by Gender and Smoking Status")
 fig_hist = px.histogram(df, x="Age", color="Gender", facet_col="Smoking_Status", barmode="group", nbins=12, title="Age Distribution Split by Gender and Smoking Status")
 st.plotly_chart(fig_hist, use_container_width=True)
 
 st.markdown("**How to read this chart:** Faceted histograms divide patient ages across smoking history groups, colored by gender.")
 st.markdown("**Observations:** Male patients represent 62.4% of the cohort. Crucially, 65.5% of patients are classified as 'Never Smoked', underscoring major non-smoking risk factors across adult age brackets.")
+
+st.divider()
+
+st.subheader("Visualization 5: Survivability Breakdown Across Cancer Stages & Demographic Intersections")
+st.markdown("**Explored Question:** How do cancer stage progression and demographic subgroups intersect to impact patient survival rates?")
+
+survival_dim = st.selectbox(
+    "Select Demographic/Clinical Dimension for Survivability (Interactive Control):",
+    options=["Cancer_Stage", "Smoking_Status", "Gender", "Age_Bracket"],
+    format_func=lambda x: {"Cancer_Stage": "Cancer Stage (I–IV)", "Smoking_Status": "Smoking Status", "Gender": "Gender", "Age_Bracket": "Age Brackets"}[x],
+    key="eda_survival_dim"
+)
+
+surv_agg = (
+    df.groupby([survival_dim, "Survived"], observed=False)
+    .size()
+    .reset_index(name="Patient Count")
+)
+surv_agg["Percentage"] = surv_agg.groupby(survival_dim)["Patient Count"].transform(lambda x: (x / x.sum()) * 100)
+
+fig_surv = px.bar(
+    surv_agg,
+    x=survival_dim,
+    y="Percentage",
+    color="Survived",
+    barmode="stack",
+    text=surv_agg["Percentage"].round(1).astype(str) + "%",
+    title=f"Survivability Share (%) Across {survival_dim.replace('_', ' ').title()}",
+    labels={survival_dim: survival_dim.replace("_", " ").title(), "Percentage": "Share of Subgroup (%)"},
+    color_discrete_sequence=["#EF553B", "#00CC96"]  # Red for No, Green for Yes
+)
+fig_surv.update_layout(yaxis=dict(range=[0, 100]))
+st.plotly_chart(fig_surv, use_container_width=True)
+
+st.markdown("**How to read this chart:**")
+st.markdown(
+    "- **Horizontal Axis (X):** Subgroups within the selected clinical or demographic dimension.\n"
+    "- **Vertical Axis (Y):** 100% normalized proportion comparing patients who survived (Yes) vs. did not survive (No).\n"
+    "- **Color Encoding:** Green segments represent the survival rate percentage; red segments represent non-survival."
+)
+st.markdown("**Observations:**")
+st.markdown(
+    "- **Stage-Dependent Survival Cliff:** Survival drops drastically from 69.8% in Stage I to just 5.5% in Stage IV.\n"
+    "- **Smoking Status Disparity:** Never Smokers exhibit a higher overall survival rate (42.5%) compared to Current Smokers (27.3%).\n"
+    "- **Gender Discrepancy:** Female patients record a higher survival rate (41.6%) than Male patients (35.5%).\n"
+    "- **Data Implication:** Clinical staging and early detection are primary determinants of survivability across all demographic groups."
+)
